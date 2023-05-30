@@ -1,11 +1,15 @@
-// 
+
 
 import javax.swing.*;
 import java.awt.event.*;
-import java.io.DataOutputStream;
+
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.*;
-import java.io.DataInputStream;
+
+
 
 
 public class Cliente {
@@ -37,13 +41,26 @@ class MarcoCliente extends JFrame{
 	
 }
 
-class LaminaMarcoCliente extends JPanel{
+class LaminaMarcoCliente extends JPanel implements Runnable{
 	
 	public LaminaMarcoCliente(){
+
+		nick = new JTextField(5);
+
+		add(nick);
 	
-		JLabel texto=new JLabel("CLIENTE");
+		JLabel texto=new JLabel("-CHAT-");
 		
 		add(texto);
+
+		ip = new JTextField(8);
+
+		add(ip);
+
+		campochat = new JTextArea(12,20); //Creación campo de texto donde se visualiza los mensajes
+
+		add(campochat);//Agregamos el campo de texto
+
 	
 		campo1=new JTextField(20);
 	
@@ -56,7 +73,10 @@ class LaminaMarcoCliente extends JPanel{
 		miboton.addActionListener(mienevento);
 		
 		add(miboton);	
+
+		Thread mihilo = new Thread(this);
 		
+		mihilo.start();
 	}
 	
 	
@@ -70,16 +90,29 @@ class LaminaMarcoCliente extends JPanel{
 
 			//Creación del socket
 			try {
-				Socket misocket = new Socket("192.168.0.51",3333);
+				Socket misocket = new Socket("127.0.0.1",5555);
 
-				DataOutputStream flujo_salida= new DataOutputStream(misocket.getOutputStream());
+				PaqueteEnvio datos = new PaqueteEnvio();
+				datos.setNick(nick.getText());//Obtener el texto del nick
+				datos.setPuerto(ip.getText());
+				datos.setMensaje(campo1.getText());
 
-				flujo_salida.writeUTF(campo1.getText()); //Lo que se escriba en el textfield viajara por el socket al servidor
+				ObjectOutputStream paquete_datos = new ObjectOutputStream(misocket.getOutputStream()); //flujo de salida para poder enviar información
 
-				flujo_salida.close(); //cerramos el flujo de datos
-			} catch (IOException e1) {
+				paquete_datos.writeObject(datos);
+				paquete_datos.close();
+				misocket.close();
+
+				/*DataOutputStream flujo_salida= new DataOutputStream(misocket.getOutputStream());
+				flujo_salida.writeUTF(campo1.getText()); //Lo que se escriba en el textfield viajara por el socket al servidor*
+				flujo_salida.close(); //cerramos el flujo de datos*/
+
+			} catch (UnknownHostException e1) {
 				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}catch (IOException e1){
 				System.out.println(e1.getMessage());
+
 			}
 
 		}
@@ -89,8 +122,63 @@ class LaminaMarcoCliente extends JPanel{
 		
 		
 		
-	private JTextField campo1;
+	private JTextField campo1,nick,ip;
+
+	private JTextArea campochat;
 	
 	private JButton miboton;
+
+	@Override
+	public void run() {
+		try{
+			ServerSocket servidor_cliente = new ServerSocket(9091);
+			Socket cliente;
+
+			PaqueteEnvio paqueteRecibido;
+
+			while(true){
+				cliente = servidor_cliente.accept();
+
+				ObjectInputStream flujoentrada = new ObjectInputStream(cliente.getInputStream());
+				paqueteRecibido=(PaqueteEnvio) flujoentrada.readObject();
+				campochat.append("\n" + paqueteRecibido.getNick()+ ": " + paqueteRecibido.getMensaje());
+
+
+			}
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+		}
+	}
+	
+}
+
+class PaqueteEnvio  implements Serializable{
+	
+	private String nick,puerto,mensaje;
+
+	public String getNick() {
+		return nick;
+	}
+
+	public void setNick(String nick) {
+		this.nick = nick;
+	}
+
+	public String getPuerto() {
+		return puerto;
+	}
+
+	public void setPuerto(String ip) {
+		this.puerto = ip;
+	}
+
+	public String getMensaje() {
+		return mensaje;
+	}
+
+	public void setMensaje(String mensaje) {
+		this.mensaje = mensaje;
+	}
+
 	
 }
