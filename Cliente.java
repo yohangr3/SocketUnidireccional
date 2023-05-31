@@ -1,8 +1,6 @@
 
-
 import javax.swing.*;
 import java.awt.event.*;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -49,7 +47,7 @@ class LaminaMarcoCliente extends JPanel implements Runnable{
 
 		add(nick);
 	
-		JLabel texto=new JLabel("-CHAT-");
+		JLabel texto=new JLabel("-Cliente-");
 		
 		add(texto);
 
@@ -74,9 +72,9 @@ class LaminaMarcoCliente extends JPanel implements Runnable{
 		
 		add(miboton);	
 
-		Thread mihilo = new Thread(this);
+		Thread mihilo = new Thread(this); //Creación de un hilo para la concurrencia del programa
 		
-		mihilo.start();
+		mihilo.start();//Iniciación del hilo
 	}
 	
 	
@@ -84,28 +82,26 @@ class LaminaMarcoCliente extends JPanel implements Runnable{
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			
-			//System.out.println("Funciona"); //Me imprime "funciona" cuando utilizamos el boton enviar
-			//System.out.println(campo1.getText()); En la barra de textfield nos dejará escribir y nos imprime en consola
 
 			//Creación del socket
 			try {
-				Socket misocket = new Socket("127.0.0.1",5555);
+				Socket misocket = new Socket("127.0.0.1",5555); //Creación del socket con la ip local y el puerto 5555
 
 				PaqueteEnvio datos = new PaqueteEnvio();
+				
+
+				
 				datos.setNick(nick.getText());//Obtener el texto del nick
-				datos.setPuerto(ip.getText());
-				datos.setMensaje(campo1.getText());
-
+				datos.setPuerto(ip.getText());//Obtener el texto del puerto
+				datos.setMensaje(campo1.getText());//Obtener el texto del mensaje
 				ObjectOutputStream paquete_datos = new ObjectOutputStream(misocket.getOutputStream()); //flujo de salida para poder enviar información
+				
 
-				paquete_datos.writeObject(datos);
-				paquete_datos.close();
-				misocket.close();
+				paquete_datos.writeObject(datos); 
+				paquete_datos.close(); //Cierre del socket
+				misocket.close();//Cierre del socket
+				
 
-				/*DataOutputStream flujo_salida= new DataOutputStream(misocket.getOutputStream());
-				flujo_salida.writeUTF(campo1.getText()); //Lo que se escriba en el textfield viajara por el socket al servidor*
-				flujo_salida.close(); //cerramos el flujo de datos*/
 
 			} catch (UnknownHostException e1) {
 				// TODO Auto-generated catch block
@@ -115,6 +111,8 @@ class LaminaMarcoCliente extends JPanel implements Runnable{
 
 			}
 
+			
+
 		}
 
 	}
@@ -122,16 +120,16 @@ class LaminaMarcoCliente extends JPanel implements Runnable{
 		
 		
 		
-	private JTextField campo1,nick,ip;
+	private JTextField campo1,nick,ip; //Creación de variables
 
-	private JTextArea campochat;
+	private JTextArea campochat; //Variable donde se aloja el texto escrito por el cliente
 	
-	private JButton miboton;
+	private JButton miboton; //Botón de enviar
 
 	@Override
 	public void run() {
 		try{
-			ServerSocket servidor_cliente = new ServerSocket(9091);
+			ServerSocket servidor_cliente = new ServerSocket(9090); //Creación del socket del servidro cliente con su atributo puerto
 			Socket cliente;
 
 			PaqueteEnvio paqueteRecibido;
@@ -140,7 +138,7 @@ class LaminaMarcoCliente extends JPanel implements Runnable{
 				cliente = servidor_cliente.accept();
 
 				ObjectInputStream flujoentrada = new ObjectInputStream(cliente.getInputStream());
-				paqueteRecibido=(PaqueteEnvio) flujoentrada.readObject();
+				paqueteRecibido=(PaqueteEnvio) flujoentrada.readObject(); 
 				campochat.append("\n" + paqueteRecibido.getNick()+ ": " + paqueteRecibido.getMensaje());
 
 
@@ -151,6 +149,8 @@ class LaminaMarcoCliente extends JPanel implements Runnable{
 	}
 	
 }
+
+/* Clase con get y set de cada variable para obetner y enviar datos se realiza la implementación del Serializable para poder enviar datos binarios por el puerto al servidor  */  
 
 class PaqueteEnvio  implements Serializable{
 	

@@ -22,6 +22,8 @@ public class Servidor {
 
 class MarcoServidor extends JFrame implements Runnable {
 
+	/* Creación interfaz , boton, textfield y campos de nick name y puerto */
+
 	public MarcoServidor() {
 
 		setBounds(1200, 300, 280, 350);
@@ -38,7 +40,7 @@ class MarcoServidor extends JFrame implements Runnable {
 
 		setVisible(true);
 
-		Thread mihilo = new Thread(this); // Creación del hilo pra que haya comunicación continúa del servidor
+		Thread mihilo = new Thread(this); // Creación del hilo para que haya comunicación continúa del servidor
 
 		mihilo.start();
 
@@ -47,10 +49,7 @@ class MarcoServidor extends JFrame implements Runnable {
 	@Override
 	public void run() {
 
-		// System.out.println("Estoy a la escucha");
-
-		// Creamos el serversocket que escuchara lo que le enviemos desde el cliente y
-		// lo aceptará esto envuelto en una exception en el puerto 3333
+	
 		try {
 			try (ServerSocket servidor = new ServerSocket(5555)) {
 				String nick,puerto,mensaje;
@@ -69,23 +68,15 @@ class MarcoServidor extends JFrame implements Runnable {
 					puerto= paquete_recibido.getPuerto();
 					mensaje = paquete_recibido.getMensaje();
 
-				
-					/*DataInputStream flujo_entrada = new DataInputStream(misocket.getInputStream()); // flujo de datos entrando al servidor
-																									 
-
-					String mensaje_texto = flujo_entrada.readUTF(); // Variable para que escriba el mensaje enviado en el textfield
-																
-
-					areatexto.append("\n" + mensaje_texto);*/
 
 					areatexto.append("\n"+ nick+ ": " + mensaje + " para " + puerto);
 					
 					Socket enviaDestinatario = new Socket("127.0.0.1",Integer.parseInt(puerto)); //puente para recibir información
-					ObjectOutputStream paqueteReenvio = new ObjectOutputStream(enviaDestinatario.getOutputStream());
+					ObjectOutputStream paqueteReenvio = new ObjectOutputStream(enviaDestinatario.getOutputStream()); //Utilizamos ObjectOutputStream ya que la salida de datos es de tipo objeto
 					paqueteReenvio.writeObject(paquete_recibido);
-					paqueteReenvio.close();
-					enviaDestinatario.close();
-					misocket.close();
+					paqueteReenvio.close(); //Cierre del paquete reenvio
+					enviaDestinatario.close();//Cierre del envio al destinatario
+					misocket.close();//Cierre del socket
 				}
 			}
 
